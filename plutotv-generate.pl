@@ -154,8 +154,17 @@ if ($response->is_success) {
                         print $fhm "pipe://".$ffmpeg." -loglevel fatal -threads 2 -re -user-agent \"Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:76.0) Gecko/20100101 Firefox/76.0\" -i \"".$url."\" -fflags +genpts+ignidx+igndts -vcodec copy -acodec copy -f mpegts -tune zerolatency -metadata service_name=\"".$sender->{name}."\" pipe:1\n";
                     }
                     else {
+                        #  using settings from  https://stackoverflow.com/questions/54700933/ffmpeg-dts-delta-threshold-and-aresample-async-1
+                        #  based on issues wuith sync
 			    ##print $fhm "pipe://".$streamlink." --stdout --quiet --twitch-disable-hosting --ringbuffer-size 8M --hds-segment-threads 2 --hls-segment-attempts 2 --hls-segment-key-uri \"\" --hls-segment-timeout 5 \"".$url."\" 720,best\n";
-                        print $fhm "pipe://".$streamlink." --stdout --quiet --twitch-disable-hosting --ringbuffer-size 8M --hds-segment-threads 2 --hls-segment-attempts 2 --hls-segment-timeout 5 \"".$url."\" best\n";
+                        print $fhm "pipe://".$streamlink." --stdout --quiet --twitch-disable-hosting " + \
+                            "--ringbuffer-size 64M --hds-segment-threads 2 --hls-segment-attempts 5 " + \
+                            "--hls-segment-timeout 5 --hls-timeout 100000000 --hls-live-restart \"".$url."\" best" + \
+                            "| ffmpeg -loglevel fatal -err_detect ignore_err " + \
+                            "-f mpegts -i - " + \
+                            "-c:v copy -tune zerolatency -pix_fmt yuv420p -force_key_frames \"expr:gte(t,n_forced*2)\" " + \
+                            "-c:a aac -copyts -qscale:s 2 -b:a 256k -ac 2 -af aresample=async=1 -adrift_threshold 0.1 " + \
+                            "-f mpegts pipe:1";
                     }
                   }
                 elsif( $jalle19 ) {
