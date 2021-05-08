@@ -158,7 +158,7 @@ if ($response->is_success) {
                         #  based on issues wuith sync
 			            ##print $fhm "pipe://".$streamlink." --stdout --quiet --twitch-disable-hosting --ringbuffer-size 8M --hds-segment-threads 2 --hls-segment-attempts 2 --hls-segment-key-uri \"\" --hls-segment-timeout 5 \"".$url."\" 720,best\n";
 
-                        print $fhm "pipe:///plutoTV-tvheadend/plutotv.sh '".$url."'";
+                        print $fhm "pipe:///plutoTV-tvheadend/plutotv.sh '".$url."'\n";
                     }
                   }
                 elsif( $jalle19 ) {
